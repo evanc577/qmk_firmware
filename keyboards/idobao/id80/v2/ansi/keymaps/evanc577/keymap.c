@@ -43,7 +43,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     ),
 #endif // SPACEFN
     [_FL] = LAYOUT_ansi(
-        QK_BOOT,  _______, _______, _______, _______,   KC_MSTP, KC_MPRV, KC_MPLY, KC_MNXT,   _______, KC_MUTE, KC_VOLD, KC_VOLU,    _______,    NK_TOGG,
+        QK_BOOT,  _______, _______, _______, _______,   KC_MSTP, KC_MPRV, KC_MPLY, KC_MNXT,   _______, KC_MUTE, KC_VOLD, KC_VOLU,    KC_SYRQ,    NK_TOGG,
         KC_ESC,  KC_KP_1, KC_KP_2, KC_KP_3, KC_KP_4, KC_KP_5, KC_KP_6, KC_KP_7, KC_KP_8, KC_KP_9, KC_KP_0, KC_KP_MINUS, KC_KP_PLUS, KC_DEL,      KC_HOME,
         _______,     RGB_TOG, _______, RGB_MOD, RGB_HUI, RGB_HUD, RGB_SAI, RGB_SAD, RGB_VAI, RGB_VAD, _______,   KC_UP, _______, _______,        KC_END,
         _______,       _______, _______, _______, _______, _______, KC_LEFT, KC_DOWN, KC_UP, KC_RGHT, KC_LEFT, KC_DOWN, KC_RGHT,

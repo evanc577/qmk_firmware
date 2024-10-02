@@ -35,7 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define FORCE_NKRO
 #define IDLE_TIMEOUT_MINS       5
 #define DEBOUNCE                50 // Try to fix boba u4t chatter
-#define SPACEFN
+// #define SPACEFN
 
 #ifdef SPACEFN
 #define RGBLIGHT_LAYERS
