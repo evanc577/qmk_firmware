@@ -34,7 +34,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define QMK_KEYS_PER_SCAN       12
 #define FORCE_NKRO
 #define IDLE_TIMEOUT_MINS       5
-#define DEBOUNCE                50 // Try to fix boba u4t chatter
+#define DEBOUNCE                20 // Try to fix boba u4t chatter
+
+
+#define CAPS_LOCK_RGBLIGHT_HSV ((uint32_t)0x44FFFF)
 // #define SPACEFN
 
 #ifdef SPACEFN

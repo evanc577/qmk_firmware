@@ -43,18 +43,18 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     ),
 #endif // SPACEFN
     [_FL] = LAYOUT_ansi(
-        QK_BOOT,  _______, _______, _______, _______,   KC_MSTP, KC_MPRV, KC_MPLY, KC_MNXT,   _______, KC_MUTE, KC_VOLD, KC_VOLU,    KC_SYRQ,    NK_TOGG,
+        QK_BOOT,  _______, _______, _______, _______,   KC_MSTP, KC_MPRV, KC_MPLY, KC_MNXT,   _______, KC_MUTE, KC_VOLD, KC_VOLU,    KC_SYRQ,   _______,
         KC_ESC,  KC_KP_1, KC_KP_2, KC_KP_3, KC_KP_4, KC_KP_5, KC_KP_6, KC_KP_7, KC_KP_8, KC_KP_9, KC_KP_0, KC_KP_MINUS, KC_KP_PLUS, KC_DEL,      KC_HOME,
         _______,     RGB_TOG, _______, RGB_MOD, RGB_HUI, RGB_HUD, RGB_SAI, RGB_SAD, RGB_VAI, RGB_VAD, _______,   KC_UP, _______, _______,        KC_END,
         _______,       _______, _______, _______, _______, _______, KC_LEFT, KC_DOWN, KC_UP, KC_RGHT, KC_LEFT, KC_DOWN, KC_RGHT,
-        _______,            _______, _______, _______,  _______,  KC_SPC,  KC_F13, KC_F14, KC_F15, KC_F16, KC_F17, KC_F18,              BL_INC,
+        _______,            _______, _______, _______,  _______,  KC_SPC,  KC_F13, KC_F14, KC_F15, KC_F16, KC_F17, KC_F18,              BL_UP,
         _______,   KC_RGUI,
 #ifdef SPACEFN
                             TG(_SPACEFN),
 #else
                             _______,
 #endif
-                                                                  _______,                        _______,     KC_ALGR,        BL_TOGG, BL_DEC,  BL_STEP
+                                                                  _______,                        _______,     KC_ALGR,        BL_TOGG, BL_DOWN, BL_STEP
     ),
 };
 
@@ -151,16 +151,26 @@ layer_state_t layer_state_set_user(layer_state_t state) {
 }
 #endif // SPACEFN
 
-void led_set_user(uint8_t usb_led) {
-    // Set underglow LED if capslock is active
-    const uint8_t index = 13;
-    const uint8_t count = 2;
-    if (usb_led & (1 << USB_LED_CAPS_LOCK)) {
-        rgblight_sethsv_range(0xCE, 0xE6, 0xB3, index, index + count);
-    } else {
-        HSV hsv = rgblight_get_hsv();
-        rgblight_sethsv_range(hsv.h, hsv.s, hsv.v, index, index + count);
+bool led_update_user(led_t led_state) {
+    static uint8_t caps_state = 0;
+    if (caps_state != led_state.caps_lock) {
+        const uint8_t index = 13;
+        const uint8_t count = 3;
+        if (led_state.caps_lock) {
+            rgblight_sethsv_range(
+                (CAPS_LOCK_RGBLIGHT_HSV >> 16) & 0xFF,
+                (CAPS_LOCK_RGBLIGHT_HSV >>  8) & 0xFF,
+                (CAPS_LOCK_RGBLIGHT_HSV >>  0) & 0xFF,
+                index,
+                index + count
+            );
+        } else {
+            HSV hsv = rgblight_get_hsv();
+            rgblight_sethsv_range(hsv.h, hsv.s, hsv.v, index, index + count);
+        }
+        caps_state = led_state.caps_lock;
     }
+    return true;
 }
 
 void keyboard_post_init_user(void) {
