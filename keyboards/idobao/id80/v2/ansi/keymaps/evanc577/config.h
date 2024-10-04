@@ -30,11 +30,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #undef  RGBLIGHT_EFFECT_STATIC_GRADIENT
 #undef  RGBLIGHT_EFFECT_TWINKLE
 
-#define USB_POLLING_INTERVAL_MS 1
-#define QMK_KEYS_PER_SCAN       12
+#define CAPS_LOCK_RGBLIGHT_HSV  0x44, 0xFF, 0xFF
+#define DEBOUNCE                20
 #define FORCE_NKRO
-#define IDLE_TIMEOUT_MINS       5
-#define DEBOUNCE                20 // Try to fix boba u4t chatter
-
-
-#define CAPS_LOCK_RGBLIGHT_HSV 0x44, 0xFF, 0xFF
+#define IDLE_TIMEOUT_SEC        5 * 60
+#define QMK_KEYS_PER_SCAN       12
+#define USB_POLLING_INTERVAL_MS 1

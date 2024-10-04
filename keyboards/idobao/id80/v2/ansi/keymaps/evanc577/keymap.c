@@ -13,6 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "backlight.h"
 #include QMK_KEYBOARD_H
 
 enum layers {
@@ -41,76 +42,49 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 
 // Lighting timeout feature
-#ifdef IDLE_TIMEOUT_MINS
-#if defined(BACKLIGHT_ENABLE)
-#define IDLE_TIMEOUT
-#endif
-#endif
+#ifdef IDLE_TIMEOUT_SEC
+static uint16_t key_timer;
+static uint16_t secs_to_idle = IDLE_TIMEOUT_SEC;
+static uint8_t bl_level = 0;
+static void refresh_timeout(void);
+static void check_timeout(void);
 
-#ifdef IDLE_TIMEOUT
-static uint16_t idle_timer          = 0;
-static uint8_t  halfmin_counter     = 0;
-static uint8_t  led_level           = 0;
-static bool     led_on              = true;
-static bool     rgb_on              = true;
-static bool     idle                = false;
-
-void matrix_scan_user(void) {
-    if (!idle && timer_elapsed(idle_timer) > 30000 && (led_on || rgb_on)) {
-        halfmin_counter++;
-        idle_timer = timer_read();
-    }
-
-    bool do_idle = false;
-    if (halfmin_counter >= IDLE_TIMEOUT_MINS * 2) {
-#ifdef BACKLIGHT_ENABLE
-        if (led_on) {
-            led_level       = get_backlight_level();
-            do_idle         = true;
-            backlight_set(0);
-        }
-#endif
-        if (rgb_on) {
-            do_idle         = true;
-            rgblight_disable_noeeprom();
-        }
-        if (do_idle) {
-            halfmin_counter = 0;
-            idle            = true;
-        }
+void refresh_timeout() {
+    key_timer = timer_read();
+    if (secs_to_idle == 0) {
+        rgblight_wakeup();
+        backlight_set(bl_level);
+        secs_to_idle = IDLE_TIMEOUT_SEC;
     }
 }
 
-bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    if (record->event.pressed) {
-        // Restore lighting if coming out of idle
-        if (idle) {
-#ifdef BACKLIGHT_ENABLE
-            if (led_on) {
-                backlight_set(led_level);
-            }
-#endif
-            if (rgb_on) {
-                rgblight_enable_noeeprom();
-            }
-            idle = false;
-        }
-
-        // Record current lighting status
-#ifdef BACKLIGHT_ENABLE
-        led_on = is_backlight_enabled();
-#endif
-        rgb_on = rgblight_is_enabled();
-
-        // Reset timer
-        idle_timer      = timer_read();
-        halfmin_counter = 0;
+void check_timeout() {
+    if (secs_to_idle > 0 && timer_elapsed(key_timer) > 1000) {
+        --secs_to_idle;
+        key_timer = timer_read();
     }
-    return true;
+    if (secs_to_idle == 0) {
+        rgblight_suspend();
+        bl_level = get_backlight_level();
+        backlight_set(0);
+    }
 }
-#endif // IDLE_TIMEOUT
+#endif //IDLE_TIMEOUT_SEC
+
+void housekeeping_task_user() {
+#ifdef IDLE_TIMEOUT_SEC
+    check_timeout();
+#endif //IDLE_TIMEOUT_SEC
+}
+
+void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
+#ifdef IDLE_TIMEOUT_SEC
+    if (record->event.pressed) refresh_timeout();
+#endif //IDLE_TIMEOUT_SEC
+}
 
 bool led_update_user(led_t led_state) {
+    // Change underglow color around caps lock key if caps lock is active
     static uint8_t caps_state = 0;
     if (caps_state != led_state.caps_lock) {
         const uint8_t index = 13;
@@ -128,17 +102,4 @@ bool led_update_user(led_t led_state) {
         caps_state = led_state.caps_lock;
     }
     return true;
-}
-
-void keyboard_post_init_user(void) {
-#ifdef IDLE_TIMEOUT
-    // Init backlight and rgb status
-    led_on = is_backlight_enabled();
-    rgb_on = rgblight_is_enabled();
-
-    // idle_timer needs to be set one time
-    if (idle_timer == 0) {
-        idle_timer = timer_read();
-    }
-#endif
 }
