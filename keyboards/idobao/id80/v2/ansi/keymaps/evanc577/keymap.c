@@ -17,9 +17,6 @@
 
 enum layers {
     _QWERTY,
-#ifdef SPACEFN
-    _SPACEFN,
-#endif
     _FL
 };
 
@@ -32,36 +29,20 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_LSFT,            KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, KC_RSFT,          KC_UP,
         KC_LCTL,   KC_LGUI,   KC_LALT,                       KC_SPC,                              MO(_FL),     KC_RCTL,        KC_LEFT, KC_DOWN, KC_RGHT
     ),
-#ifdef SPACEFN
-    [_SPACEFN] = LAYOUT_ansi(
-        _______,   _______, _______, _______, _______,   _______, _______, _______, _______,   _______, _______, _______, _______,    _______,   _______,
-        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,            _______,
-        _______,     _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,        _______,
-        _______,       _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
-        _______,            _______, _______, _______,  _______, _______,  _______, _______, _______, _______, _______, _______,       _______,
-        _______,   _______,   _______,                   LT(_FL, KC_SPC),                        _______,     _______,        _______, _______,  _______
-    ),
-#endif // SPACEFN
     [_FL] = LAYOUT_ansi(
-        QK_BOOT,  _______, _______, _______, _______,   KC_MSTP, KC_MPRV, KC_MPLY, KC_MNXT,   _______, KC_MUTE, KC_VOLD, KC_VOLU,    KC_SYRQ,   _______,
+        QK_BOOT,  _______, _______, _______, _______,   KC_MSTP, KC_MPRV, KC_MPLY, KC_MNXT,   _______, KC_MUTE, KC_VOLD, KC_VOLU,    KC_SYRQ,    _______,
         KC_ESC,  KC_KP_1, KC_KP_2, KC_KP_3, KC_KP_4, KC_KP_5, KC_KP_6, KC_KP_7, KC_KP_8, KC_KP_9, KC_KP_0, KC_KP_MINUS, KC_KP_PLUS, KC_DEL,      KC_HOME,
         _______,     RGB_TOG, _______, RGB_MOD, RGB_HUI, RGB_HUD, RGB_SAI, RGB_SAD, RGB_VAI, RGB_VAD, _______,   KC_UP, _______, _______,        KC_END,
         _______,       _______, _______, _______, _______, _______, KC_LEFT, KC_DOWN, KC_UP, KC_RGHT, KC_LEFT, KC_DOWN, KC_RGHT,
         _______,            _______, _______, _______,  _______,  KC_SPC,  KC_F13, KC_F14, KC_F15, KC_F16, KC_F17, KC_F18,              BL_UP,
-        _______,   KC_RGUI,
-#ifdef SPACEFN
-                            TG(_SPACEFN),
-#else
-                            _______,
-#endif
-                                                                  _______,                        _______,     KC_ALGR,        BL_TOGG, BL_DOWN, BL_STEP
+        _______,   KC_RGUI,   _______,                       _______,                             _______,     KC_ALGR,        BL_TOGG, BL_DOWN, BL_STEP
     ),
 };
 
 
 // Lighting timeout feature
 #ifdef IDLE_TIMEOUT_MINS
-#if defined(BACKLIGHT_ENABLE) || defined(RGB_DI_PIN)
+#if defined(BACKLIGHT_ENABLE)
 #define IDLE_TIMEOUT
 #endif
 #endif
@@ -89,12 +70,10 @@ void matrix_scan_user(void) {
             backlight_set(0);
         }
 #endif
-#ifdef RGB_DI_PIN
         if (rgb_on) {
             do_idle         = true;
             rgblight_disable_noeeprom();
         }
-#endif
         if (do_idle) {
             halfmin_counter = 0;
             idle            = true;
@@ -111,11 +90,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 backlight_set(led_level);
             }
 #endif
-#if RGB_DI_PIN
             if (rgb_on) {
                 rgblight_enable_noeeprom();
             }
-#endif
             idle = false;
         }
 
@@ -123,9 +100,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #ifdef BACKLIGHT_ENABLE
         led_on = is_backlight_enabled();
 #endif
-#ifdef RGB_DI_PIN
         rgb_on = rgblight_is_enabled();
-#endif
 
         // Reset timer
         idle_timer      = timer_read();
@@ -135,22 +110,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 #endif // IDLE_TIMEOUT
 
-
-// SpaceFn status lighting
-#ifdef SPACEFN
-const rgblight_segment_t PROGMEM spacefn_layer[] = RGBLIGHT_LAYER_SEGMENTS(
-        {11, 2, HSV_RED}
-        );
-const rgblight_segment_t* const PROGMEM my_rgb_layers[] = RGBLIGHT_LAYERS_LIST(
-        spacefn_layer
-        );
-
-layer_state_t layer_state_set_user(layer_state_t state) {
-    rgblight_set_layer_state(0, layer_state_cmp(state, _SPACEFN));
-    return state;
-}
-#endif // SPACEFN
-
 bool led_update_user(led_t led_state) {
     static uint8_t caps_state = 0;
     if (caps_state != led_state.caps_lock) {
@@ -158,9 +117,7 @@ bool led_update_user(led_t led_state) {
         const uint8_t count = 3;
         if (led_state.caps_lock) {
             rgblight_sethsv_range(
-                (CAPS_LOCK_RGBLIGHT_HSV >> 16) & 0xFF,
-                (CAPS_LOCK_RGBLIGHT_HSV >>  8) & 0xFF,
-                (CAPS_LOCK_RGBLIGHT_HSV >>  0) & 0xFF,
+                CAPS_LOCK_RGBLIGHT_HSV,
                 index,
                 index + count
             );
@@ -183,9 +140,5 @@ void keyboard_post_init_user(void) {
     if (idle_timer == 0) {
         idle_timer = timer_read();
     }
-#endif
-
-#ifdef SPACEFN
-    rgblight_layers = my_rgb_layers;
 #endif
 }

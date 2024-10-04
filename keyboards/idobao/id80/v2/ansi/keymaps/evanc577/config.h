@@ -37,9 +37,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DEBOUNCE                20 // Try to fix boba u4t chatter
 
 
-#define CAPS_LOCK_RGBLIGHT_HSV ((uint32_t)0x44FFFF)
-// #define SPACEFN
-
-#ifdef SPACEFN
-#define RGBLIGHT_LAYERS
-#endif
+#define CAPS_LOCK_RGBLIGHT_HSV 0x44, 0xFF, 0xFF
